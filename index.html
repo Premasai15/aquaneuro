@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaNeuro — Freshwater Recovery & Reuse System</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app-wrapper">
+  <h1>AI Water Quality Monitoring System</h1>
+  <h2>Status: <span id="ai-result"></span></h2>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo-group">
+      <div class="logo-icon">💧</div>
+      <div class="logo-text">
+        <h1>AQUANEURO</h1>
+        <p>Freshwater Recovery &amp; Reuse System · ANN + Fuzzy Logic Control</p>
+      </div>
+    </div>
+    <div class="header-status">
+      <div class="status-chip online">● SYSTEM ONLINE</div>
+      <div class="live-clock" id="liveClock">--:--:--</div>
+    </div>
+  </header>
+
+  <!-- TAB NAV -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+    <button class="tab-btn" onclick="switchTab('ann')">🧠 ANN Model</button>
+    <button class="tab-btn" onclick="switchTab('fuzzy')">🔧 Fuzzy Logic</button>
+    <button class="tab-btn" onclick="switchTab('process')">🔄 Process Flow</button>
+    <button class="tab-btn" onclick="switchTab('data')">📋 Water Quality</button>
+    <button class="tab-btn" onclick="switchTab('alerts')">🔔 Alerts</button>
+  </nav>
+
+  <!-- ==================== DASHBOARD TAB ==================== -->
+  <div id="tab-dashboard" class="tab-panel active">
+    <!-- KPI Row -->
+      
+    <div class="grid-3">
+      <div class="panel">
+        <div class="panel-title">💧 Recovery Rate</div>
+        <div class="kpi-value kpi-cyan" id="kpi-recovery">87.4<span class="kpi-unit">%</span></div>
+        <div class="kpi-label">Freshwater Recovered</div>
+        <span class="kpi-trend up" id="trend-recovery">▲ +2.1% today</span>
+      </div>
+      <div class="panel">
+        <div class="panel-title">⚡ Energy Efficiency</div>
+        <div class="kpi-value kpi-teal" id="kpi-energy">2.34<span class="kpi-unit">kWh/m³</span></div>
+        <div class="kpi-label">Specific Energy Consumption</div>
+        <span class="kpi-trend up" id="trend-energy">▼ −0.08 improved</span>
+      </div>
+      <div class="panel">
+        <div class="panel-title">🔬 Water Quality</div>
+        <div class="kpi-value kpi-ok" id="kpi-quality">98.7<span class="kpi-unit">%</span></div>
+        <div class="kpi-label">Purity Index (ANN Score)</div>
+        <span class="kpi-trend stable" id="trend-quality">● Stable</span>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="panel">
+        <div class="panel-title">📈 Flow Rate</div>
+        <div class="kpi-value kpi-cyan" id="kpi-flow">124.6<span class="kpi-unit">m³/h</span></div>
+        <div class="kpi-label">Current Treatment Flow</div>
+        <span class="kpi-trend up">▲ Operating</span>
+      </div>
+      <div class="panel">
+        <div class="panel-title">🏭 Total Treated Today</div>
+        <div class="kpi-value kpi-warn" id="kpi-total">2,847<span class="kpi-unit">m³</span></div>
+        <div class="kpi-label">Volume Since 00:00</div>
+        <span class="kpi-trend up">▲ On target</span>
+      </div>
+      <div class="panel">
+        <div class="panel-title">🤖 ANN Confidence</div>
+        <div class="kpi-value kpi-ok" id="kpi-conf">94.2<span class="kpi-unit">%</span></div>
+        <div class="kpi-label">Neural Net Prediction Conf.</div>
+        <span class="kpi-trend stable">● Learning</span>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid-main">
+      <div class="panel">
+        <div class="panel-title">📉 <span>Real-Time Sensor Data</span> — Last 60 Samples</div>
+        <div class="chart-canvas-wrap">
+          <canvas id="sensorChart"></canvas>
+        </div>
+        <div style="display:flex;gap:18px;margin-top:12px;flex-wrap:wrap;">
+          <span style="font-size:11px;color:#00e5ff;">— pH Level</span>
+          <span style="font-size:11px;color:#00c4a7;">— Turbidity</span>
+          <span style="font-size:11px;color:#ffb830;">— TDS (scaled)</span>
+          <span style="font-size:11px;color:#00e396;">— DO</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">💧 <span>Tank Levels</span></div>
+        <div style="display:flex;gap:16px;justify-content:center;align-items:flex-end;">
+          <div class="gauge-wrap">
+            <svg class="gauge-svg" width="100" height="100" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#0d3a50" stroke-width="8"/>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="url(#gaugeGrad1)" stroke-width="8"
+                stroke-dasharray="238.76" stroke-dashoffset="30.8" stroke-linecap="round"
+                transform="rotate(-90 50 50)" id="gaugeInput"/>
+              <defs>
+                <linearGradient id="gaugeGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#00e5ff"/>
+                  <stop offset="100%" stop-color="#00c4a7"/>
+                </linearGradient>
+              </defs>
+              <text x="50" y="46" text-anchor="middle" font-family="Orbitron,monospace"
+                font-size="13" fill="#00e5ff" font-weight="700" id="gaugePct1">87%</text>
+              <text x="50" y="60" text-anchor="middle" font-family="Exo 2,sans-serif"
+                font-size="8" fill="#6e9ab5">INPUT</text>
+            </svg>
+            <div class="gauge-label">Intake<br>Reservoir</div>
+          </div>
+          <div class="gauge-wrap">
+            <svg class="gauge-svg" width="100" height="100" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#0d3a50" stroke-width="8"/>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="url(#gaugeGrad2)" stroke-width="8"
+                stroke-dasharray="238.76" stroke-dashoffset="59.69" stroke-linecap="round"
+                transform="rotate(-90 50 50)" id="gaugeTreat"/>
+              <defs>
+                <linearGradient id="gaugeGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#1a7fbf"/>
+                  <stop offset="100%" stop-color="#00e5ff"/>
+                </linearGradient>
+              </defs>
+              <text x="50" y="46" text-anchor="middle" font-family="Orbitron,monospace"
+                font-size="13" fill="#00e5ff" font-weight="700" id="gaugePct2">75%</text>
+              <text x="50" y="60" text-anchor="middle" font-family="Exo 2,sans-serif"
+                font-size="8" fill="#6e9ab5">TREAT</text>
+            </svg>
+            <div class="gauge-label">Treatment<br>Tank</div>
+          </div>
+          <div class="gauge-wrap">
+            <svg class="gauge-svg" width="100" height="100" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#0d3a50" stroke-width="8"/>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="url(#gaugeGrad3)" stroke-width="8"
+                stroke-dasharray="238.76" stroke-dashoffset="14.32" stroke-linecap="round"
+                transform="rotate(-90 50 50)" id="gaugeClean"/>
+              <defs>
+                <linearGradient id="gaugeGrad3" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#00c4a7"/>
+                  <stop offset="100%" stop-color="#00e396"/>
+                </linearGradient>
+              </defs>
+              <text x="50" y="46" text-anchor="middle" font-family="Orbitron,monospace"
+                font-size="13" fill="#00e396" font-weight="700" id="gaugePct3">94%</text>
+              <text x="50" y="60" text-anchor="middle" font-family="Exo 2,sans-serif"
+                font-size="8" fill="#6e9ab5">CLEAN</text>
+            </svg>
+            <div class="gauge-label">Clean Water<br>Output</div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;">
+          <div class="panel-title" style="margin-bottom:10px;">Fuzzy Control Output</div>
+          <div class="param-grid">
+            <div class="param-item">
+              <span class="param-name">Pump Speed</span>
+              <span class="param-value" id="dash-pump">72%</span>
+            </div>
+            <div class="param-item">
+              <span class="param-name">Chemical Dose</span>
+              <span class="param-value" id="dash-chem">18 mg/L</span>
+            </div>
+            <div class="param-item">
+              <span class="param-name">Filter Rate</span>
+              <span class="param-value" id="dash-filter">0.8 m/h</span>
+            </div>
+            <div class="param-item">
+              <span class="param-name">UV Intensity</span>
+              <span class="param-value" id="dash-uv">85%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recovery & Efficiency Chart -->
+    <div class="panel">
+      <div class="panel-title">📊 <span>24-Hour Performance</span> — Recovery Rate &amp; Energy Consumption</div>
+      <div class="chart-canvas-wrap" style="height:150px;">
+        <canvas id="perfChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== ANN TAB ==================== -->
+  <div id="tab-ann" class="tab-panel">
+    <div class="section-divider"><h2>Artificial Neural Network Model</h2></div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-title">🧠 <span>Network Architecture</span></div>
+        <div class="ann-canvas-wrap">
+          <canvas id="annCanvas"></canvas>
+        </div>
+        <div style="margin-top:12px;">
+          <div class="param-grid">
+            <div class="param-item"><span class="param-name">Architecture</span><span class="param-value">MLP Backprop</span></div>
+            <div class="param-item"><span class="param-name">Input Neurons</span><span class="param-value">8</span></div>
+            <div class="param-item"><span class="param-name">Hidden Layers</span><span class="param-value">2 × 12</span></div>
+            <div class="param-item"><span class="param-name">Output Neurons</span><span class="param-value">4</span></div>
+            <div class="param-item"><span class="param-name">Activation</span><span class="param-value">ReLU / Sigmoid</span></div>
+            <div class="param-item"><span class="param-name">Optimizer</span><span class="param-value">Adam</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">📈 <span>Training Progress</span></div>
+        <div class="chart-canvas-wrap" style="height:160px;">
+          <canvas id="trainChart"></canvas>
+        </div>
+
+        <div class="train-progress-wrap" style="margin-top:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-bottom:4px;">
+            <span>Training Epoch</span><span id="epochNum">847 / 1000</span>
+          </div>
+          <div class="train-bar-bg">
+            <div class="train-bar-fill" id="epochBar" style="width:84.7%"></div>
+          </div>
+          <div class="train-stats-row">
+            <span>MSE: <span id="mseVal" style="color:var(--accent-cyan)">0.00312</span></span>
+            <span>R²: <span id="r2Val" style="color:var(--accent-ok)">0.9814</span></span>
+            <span>LR: <span style="color:var(--accent-warn)">0.001</span></span>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;">
+          <div class="panel-title" style="margin-bottom:10px;">Input Features (Sensors)</div>
+          <div id="inputFeatures" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;"></div>
+        </div>
+
+        <div style="margin-top:14px;display:flex;gap:10px;">
+          <button class="btn btn-primary btn-sm" onclick="simulateTrain()">▶ Simulate Training</button>
+          <button class="btn btn-warn btn-sm" onclick="resetANN()">↺ Reset Weights</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="panel-title">🎯 <span>ANN Predictions vs Actual</span></div>
+      <div class="chart-canvas-wrap" style="height:200px;">
+        <canvas id="predChart"></canvas>
+      </div>
+      <div style="display:flex;gap:24px;margin-top:10px;flex-wrap:wrap;">
+        <span style="font-size:11px;color:#00e5ff;">— Predicted Recovery Rate</span>
+        <span style="font-size:11px;color:#ff4560;">— Actual Recovery Rate</span>
+        <span style="font-size:11px;color:#00c4a7;">— Predicted Quality</span>
+        <span style="font-size:11px;color:#ffb830;">— Actual Quality</span>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-title">⚙️ <span>Network Hyperparameters</span></div>
+        <div class="fuzzy-control">
+          <div class="fuzzy-row">
+            <label>Learning Rate</label>
+            <input type="range" min="1" max="100" value="10" oninput="updateHyper(this,'lr')">
+            <span class="fuzzy-val" id="hp-lr">0.001</span>
+          </div>
+          <div class="fuzzy-row">
+            <label>Batch Size</label>
+            <input type="range" min="1" max="100" value="32" oninput="updateHyper(this,'batch')">
+            <span class="fuzzy-val" id="hp-batch">32</span>
+          </div>
+          <div class="fuzzy-row">
+            <label>Dropout Rate</label>
+            <input type="range" min="0" max="100" value="20" oninput="updateHyper(this,'drop')">
+            <span class="fuzzy-val" id="hp-drop">0.20</span>
+          </div>
+          <div class="fuzzy-row">
+            <label>Momentum</label>
+            <input type="range" min="0" max="100" value="90" oninput="updateHyper(this,'mom')">
+            <span class="fuzzy-val" id="hp-mom">0.90</span>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">📊 <span>ANN Output Predictions</span></div>
+        <div id="ann-outputs" style="display:flex;flex-direction:column;gap:10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== FUZZY LOGIC TAB ==================== -->
+  <div id="tab-fuzzy" class="tab-panel">
+    <div class="section-divider"><h2>Fuzzy Logic Control System</h2></div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-title">🔢 <span>Fuzzification</span> — Input Variables</div>
+        <div class="fuzzy-control">
+          <div class="fuzzy-row">
+            <label>pH Level</label>
+            <input type="range" min="0" max="140" value="72" oninput="updateFuzzy()" id="sl-ph">
+            <span class="fuzzy-val" id="fv-ph">7.2</span>
+          </div>
+          <div class="fuzzy-row">
+            <label>Turbidity (NTU)</label>
+            <input type="range" min="0" max="200" value="45" oninput="updateFuzzy()" id="sl-turb">
+            <span class="fuzzy-val" id="fv-turb">45</span>
+          </div>
+          <div class="fuzzy-row">
+            <label>TDS (mg/L)</label>
+            <input type="range" min="0" max="2000" value="320" step="10" oninput="updateFuzzy()" id="sl-tds">
+            <span class="fuzzy-val" id="fv-tds">320</span>
+          </div>
+          <div class="fuzzy-row">
+            <label>DO (mg/L)</label>
+            <input type="range" min="0" max="120" value="68" oninput="updateFuzzy()" id="sl-do">
+            <span class="fuzzy-val" id="fv-do">6.8</span>
+          </div>
+          <div class="fuzzy-row">
+            <label>Temperature (°C)</label>
+            <input type="range" min="0" max="500" value="225" oninput="updateFuzzy()" id="sl-temp">
+            <span class="fuzzy-val" id="fv-temp">22.5</span>
+          </div>
+          <div class="fuzzy-row">
+            <label>Flow Rate (m³/h)</label>
+            <input type="range" min="0" max="300" value="124" oninput="updateFuzzy()" id="sl-flow">
+            <span class="fuzzy-val" id="fv-flow">124</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">📐 <span>Membership Functions</span> — Fuzzified Values</div>
+        <div id="membershipDisplay"></div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="panel-title">⚖️ <span>Fuzzy Inference Rules</span> — Mamdani Method</div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>IF pH</th>
+              <th>AND Turbidity</th>
+              <th>AND TDS</th>
+              <th>AND DO</th>
+              <th>THEN Pump Speed</th>
+              <th>Chemical Dose</th>
+              <th>Weight</th>
+            </tr>
+          </thead>
+          <tbody id="fuzzyRulesTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-title">📊 <span>Defuzzification</span> — Centroid Method</div>
+        <div class="chart-canvas-wrap" style="height:200px;">
+          <canvas id="fuzzyChart"></canvas>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">⚡ <span>Control Outputs</span> — Crisp Values</div>
+        <div class="fuzzy-output-panel">
+          <div class="fuzzy-output-title">◆ DEFUZZIFIED CONTROL ACTIONS</div>
+          <div class="fuzzy-output-grid">
+            <div class="fout-item">
+              <div class="fout-val kpi-cyan" id="fo-pump">72<span style="font-size:14px">%</span></div>
+              <div class="fout-label">Pump Speed</div>
+            </div>
+            <div class="fout-item">
+              <div class="fout-val kpi-teal" id="fo-chem">18<span style="font-size:14px"> mg/L</span></div>
+              <div class="fout-label">Chem. Dose</div>
+            </div>
+            <div class="fout-item">
+              <div class="fout-val kpi-ok" id="fo-uv">85<span style="font-size:14px">%</span></div>
+              <div class="fout-label">UV Intensity</div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <div class="fuzzy-output-panel">
+            <div class="fuzzy-output-title">◆ SYSTEM RECOMMENDATION</div>
+            <div id="fuzzyRecommendation" style="font-size:12px;line-height:1.6;color:var(--text-secondary);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PROCESS FLOW TAB ==================== -->
+  <div id="tab-process" class="tab-panel">
+    <div class="section-divider"><h2>Treatment Process Flow Diagram</h2></div>
+
+    <div class="flow-diagram" style="margin-bottom:20px;">
+      <div class="flow-row">
+        <div class="flow-node" onclick="showNodeInfo('source')">
+          <div class="flow-box source">
+            Raw<br>Water<br>Source
+            <div class="flow-dot active"></div>
+          </div>
+          <div class="flow-node-label">Intake</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" onclick="showNodeInfo('screening')">
+          <div class="flow-box intake">
+            Screening<br>&amp; Intake
+            <div class="flow-dot active"></div>
+          </div>
+          <div class="flow-node-label">Pre-filter</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" onclick="showNodeInfo('coagulation')">
+          <div class="flow-box process">
+            Coagulation<br>Flocculation
+            <div class="flow-dot warn"></div>
+          </div>
+          <div class="flow-node-label">Chemical</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" onclick="showNodeInfo('sedimentation')">
+          <div class="flow-box process">
+            Sedimentation<br>&amp; Clarifier
+            <div class="flow-dot active"></div>
+          </div>
+          <div class="flow-node-label">Settling</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" onclick="showNodeInfo('filtration')">
+          <div class="flow-box intake">
+            Sand / Membrane<br>Filtration
+            <div class="flow-dot active"></div>
+          </div>
+          <div class="flow-node-label">Filter</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" onclick="showNodeInfo('ann')">
+          <div class="flow-box ann">
+            ANN + Fuzzy<br>Controller
+            <div class="flow-dot active"></div>
+          </div>
+          <div class="flow-node-label">AI Control</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" onclick="showNodeInfo('disinfection')">
+          <div class="flow-box process">
+            UV / Chlorine<br>Disinfection
+            <div class="flow-dot active"></div>
+          </div>
+          <div class="flow-node-label">Sterilize</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node" onclick="showNodeInfo('output')">
+          <div class="flow-box output">
+            Clean Water<br>Storage
+            <div class="flow-dot active"></div>
+          </div>
+          <div class="flow-node-label">Output</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Node Info Panel -->
+    <div class="panel" id="nodeInfoPanel" style="margin-bottom:20px;display:none;">
+      <div class="panel-title">ℹ️ <span id="nodeInfoTitle">Node Information</span></div>
+      <div id="nodeInfoContent" style="font-size:13px;color:var(--text-secondary);line-height:1.7;"></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-title">📊 <span>Stage-by-Stage Quality</span></div>
+        <div class="chart-canvas-wrap" style="height:200px;">
+          <canvas id="stageChart"></canvas>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">⚙️ <span>Process Parameters</span></div>
+        <div class="param-grid">
+          <div class="param-item"><span class="param-name">Coagulant (Alum)</span><span class="param-value" id="pp-alum">18 mg/L</span></div>
+          <div class="param-item"><span class="param-name">Floc Time</span><span class="param-value">25 min</span></div>
+          <div class="param-item"><span class="param-name">Settle Time</span><span class="param-value">2.5 hr</span></div>
+          <div class="param-item"><span class="param-name">Filter Velocity</span><span class="param-value" id="pp-fv">0.8 m/h</span></div>
+          <div class="param-item"><span class="param-name">Cl₂ Residual</span><span class="param-value">0.5 mg/L</span></div>
+          <div class="param-item"><span class="param-name">UV Dose</span><span class="param-value">40 mJ/cm²</span></div>
+          <div class="param-item"><span class="param-name">pH Adjustment</span><span class="param-value">7.0–7.5</span></div>
+          <div class="param-item"><span class="param-name">Pump Pressure</span><span class="param-value">4.2 bar</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== DATA TAB ==================== -->
+  <div id="tab-data" class="tab-panel">
+    <div class="section-divider"><h2>Water Quality Monitoring</h2></div>
+    <div class="panel" style="margin-bottom:20px;">
+      <div class="panel-title">🔬 <span>Live Sensor Readings</span> — WHO Standards</div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Inlet</th>
+              <th>Post-Coag.</th>
+              <th>Post-Filter</th>
+              <th>Outlet</th>
+              <th>WHO Limit</th>
+              <th>Status</th>
+              <th>ANN Flag</th>
+            </tr>
+          </thead>
+          <tbody id="qualityTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-title">📊 <span>Historical Trend</span> — 7 Days</div>
+        <div class="chart-canvas-wrap" style="height:180px;">
+          <canvas id="histChart"></canvas>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">🏆 <span>Compliance Summary</span></div>
+        <div id="complianceGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== ALERTS TAB ==================== -->
+  <div id="tab-alerts" class="tab-panel">
+    <div class="section-divider"><h2>System Alerts &amp; Diagnostics</h2></div>
+    <div class="grid-2">
+      <div>
+        <div class="panel" style="margin-bottom:16px;">
+          <div class="panel-title">🔔 <span>Active Alerts</span> <span id="alertCount" style="color:var(--accent-warn);"></span></div>
+          <div class="alert-list" id="alertList"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">📈 <span>System Health</span></div>
+        <div style="display:flex;flex-direction:column;gap:10px;" id="healthDisplay"></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">📋 <span>Event Log</span></div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr><th>Time</th><th>Event</th><th>Source</th><th>Severity</th><th>Action Taken</th></tr>
+          </thead>
+          <tbody id="eventLog"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app-wrapper -->
+
+<div class="card">pH: <span id="ph"></span></div>
+<div class="card">Turbidity: <span id="turb"></span></div>
+<div class="card">DO: <span id="do"></span></div>
+
+<style>
+.card {
+  padding: 10px;
+  margin: 10px;
+  background: #222;
+  color: white;
+  border-radius: 8px;
+  display: inline-block;
+}
+</style>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<canvas id="phChart"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="app.js"></script>
+
+
+</body>
+</html>
