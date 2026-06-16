@@ -26,6 +26,27 @@ Water scarcity is a growing global concern. Large amounts of water are wasted du
 * Data visualization dashboard.
 * Water recovery and conservation recommendations.
 
+## Architecture Diagram
+
+
+![Architecture Diagram](image.png)
+
+
+## Dashboard Screenshots
+
+### Home Dashboard
+
+![Home dashboard](image-1.png)
+
+
+### Real-Time Sensor Data Analysis
+
+![Sensor Data](image-2.png)
+
+### ANN Prediction vs Actual Performance
+
+![Dashboard](image-3.png)
+
 ## Technologies Used
 
 * Python
